@@ -2,6 +2,7 @@
 A simple Java-based web application that allows users to register, log in, view available medicines, add new medicines, and place orders. This project uses Java Servlets, JSP, HTML, and MySQL for backend data storage.
 
  Features
+ 
 User Registration & Login
 Users can register with name, email, contact number, and password. They can log in using their credentials.
 
