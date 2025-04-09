@@ -1,0 +1,294 @@
+----------------------------
+Registration.html
+----------------------------
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Deokar's Pharmacy Center</title>
+</head>
+<body>
+<form action="LoginServlet" method="post">
+	<fieldset style="background:pink; width:400px;">
+		<legend>Registration Form</legend>
+			<table>
+				<tr>
+					<td>Enter name</td><td><input type="text" name="username"></td>
+				</tr>
+				<tr>
+					<td>Enter Email</td>
+					<td><input  type="email" name="email"></td>
+				</tr>
+				<tr>
+					<td>Enter Contact no</td>
+					<td><input type="text" name="contact"></td>
+				</tr>
+				<tr>
+					<td>Enter Address</td>
+					<td><input type="text" name="address"></td>
+				</tr>
+				<tr>
+					<td>Enter password</td>
+					<td><input type="password" name="password"></td>
+				</tr>
+				<tr>
+					<td><button>Register</button></td>
+					<td><input type="reset"></td>
+					<td><a href="Login.html">Already User</a></td>
+				</tr>
+			</table>
+	</fieldset>
+</form>
+</body>
+</html>
+--------------------------------
+LoginServlet
+--------------------------------
+--------------------------------
+Login.html
+--------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<form action='ViewMedicineServlet' method='post'>
+	<table>
+		<tr><td>Enter Username : </td><td><input type='text' name='username'></td></tr>
+		<tr><td>Enter Password : </td><td><input type='password' name='password'></td></tr>
+		<tr><td><input type="submit" value="Submit"></td>
+		<td><input type="reset" value="Reset"></td></tr>
+	</table></form>
+</body>
+</html>
+-----------------------------------
+ViewMedicineServlet
+-----------------------------------
+
+package servletJDBC;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ViewMedicineServlet")
+public class ViewMedicineServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    public ViewMedicineServlet() {
+        super();
+    }
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		String username=request.getParameter("username");
+		String password=request.getParameter("password");
+		if(username=="" && password=="") {
+			pw.println("<h3>Please enter Username ans Password</h3>");
+			response.sendRedirect("Login.html");
+		}else {
+//			pw.println("login successfullyy");
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/first","root","root");
+				PreparedStatement ps=con.prepareStatement("SELECT * FROM pharmacyuser WHERE name=? AND password=?");
+				ps.setString(1, username);
+				ps.setString(2, password);
+				ResultSet rs=ps.executeQuery();
+				if(rs.next()) {
+//					pw.println("Login Successfully...");
+					response.sendRedirect("ViewMedicines2Servlet");
+					
+				}else {
+					response.sendRedirect("Login.html");
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}
+------------------------------
+ViewMedicine2Servlet
+------------------------------
+package servletJDBC;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+@WebServlet("/ViewMedicines2Servlet")
+public class ViewMedicines2Servlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    public ViewMedicines2Servlet() {
+        super();
+    }
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		pw.println("<a href='AddMedicines.html'>Add new Medicine</a><br><br>");
+		pw.println("<a href='ViewMed3Servlet'>View Medicine List</a>");
+		String MedName=request.getParameter("Medname");
+		String des=request.getParameter("desc");
+		String price=request.getParameter("price");
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/first","root","root");
+			PreparedStatement ps=con.prepareStatement("INSERT INTO medicines (medicine_name,description,price) VALUES(?,?,?)");
+			ps.setString(1, MedName);
+			ps.setString(2, des);
+			ps.setString(3, price);
+			int no=ps.executeUpdate();
+			if(no>0) {
+				pw.println("Added  successfully...");
+			}
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con1=DriverManager.getConnection("jdbc:mysql://localhost:3306/first","root","root");
+				PreparedStatement ps1=con1.prepareStatement("SELECT * FROM medicines");
+				ResultSet rs=ps1.executeQuery();
+				pw.print("<table border='1' width='100%'");  
+				pw.print("<tr><th>Medicine Id</th><th>Medicine Name</th><th>Medicine Description</th><th>Medicine Price</th><th>Place Order</th><th>Delete</th></tr>");
+				
+				
+				while(rs.next()) {
+					rs.getInt(1);
+					rs.getString(2);
+					rs.getString(3);
+					rs.getInt(4);
+					pw.print("<tr><td>"+rs.getInt(1)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3)+"</td><td>"+rs.getInt(4)+"</td></tr>");
+				}
+		     
+		     pw.print("</table>");
+				
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+---------------------------------
+AddMedicine.html
+---------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<form action="ViewMedicines2Servlet" method="get">
+	<fieldset style="background:pink; width:400px;">
+		<legend>Enter Medicine Details</legend>
+			<table>
+				<tr>
+					<td>Enter Name</td><td><input type="text" name="Medname"></td>
+				</tr>
+				<tr>
+					<td>Enter Description</td>
+					<td><textarea name="desc" rows="4" cols="50"></textarea></td>
+				</tr>
+				<tr>
+					<td>Enter Price</td>
+					<td><input type="text" name="price"></td>
+				</tr>
+				<tr>
+					<td><button>ADD</button></td>
+					<td><input type="reset"></td>
+				</tr>
+			</table>
+	</fieldset>
+</form>
+</body>
+</html>
+--------------------------------
+ViewMed3Servlet
+--------------------------------
+package servletJDBC;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ViewMed3Servlet")
+public class ViewMed3Servlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    public ViewMed3Servlet() {
+        super();
+    }
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html");
+		PrintWriter pw=response.getWriter();
+		
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/first","root","root");
+			PreparedStatement ps=con.prepareStatement("SELECT * FROM medicines");
+			ResultSet rs=ps.executeQuery();
+			pw.print("<table border='1' width='100%'");  
+			pw.print("<tr><th>Medicine Id</th><th>Medicine Name</th><th>Medicine Description</th><th>Medicine Price</th><th>Place Order</th></tr>");
+			while(rs.next()) {
+				rs.getInt("medicine_id");
+				rs.getString("medicine_name");
+				rs.getString("description");
+				rs.getInt("price");
+				
+				pw.print("<tr><td>"+rs.getInt("medicine_id")+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3)+"</td><td>"+rs.getInt(4)+"</td><td><a href='PlaceOrder.jsp'>Place Order</a></td></tr>");
+			}
+			pw.print("</table>");
+			
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+-------------------------------
+PlaceOrder.jsp
+-------------------------------
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h3>Order Placed Successfully...</h3><br>
+<a href='ViewMed3Servlet'>View Medicine List</a> 
+</body>
+</html>
+-----------------------------------------------------
